@@ -16,16 +16,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+        
       - name: Build Docker image
         run: |
           docker build -t nextcloud-s3:${{ github.sha }} .
           docker tag nextcloud-s3:${{ github.sha }} ${{ secrets.REGISTRY_USERNAME }}/nextcloud:${{ github.sha }}
+          docker tag nextcloud-s3:${{ github.sha }} ${{ secrets.REGISTRY_USERNAME }}/nextcloud:latest  # ✅ latest 태그 추가
 
       - name: Log in and push to Docker Hub
         run: |
           echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
           docker push ${{ secrets.REGISTRY_USERNAME }}/nextcloud:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY_USERNAME }}/nextcloud:latest  # ✅ latest도 푸시
 
 
 
