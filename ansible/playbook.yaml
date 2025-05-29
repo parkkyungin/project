@@ -4,51 +4,53 @@
 
   vars:
     project_dir: /home/user1/project
-    k8s_local_dir: "{{ project_dir }}/k8s"
-    k8s_remote_dir: "{{ project_dir }}/k8s"
+    k8s_dir: "{{ project_dir }}/k8s"
 
   tasks:
     - name: Create remote k8s directory if not exists
       file:
-        path: "{{ k8s_remote_dir }}"
+        path: "{{ k8s_dir }}"
         state: directory
         mode: '0755'
 
     - name: Copy Secret to remote
       copy:
-        src: "{{ k8s_local_dir }}/secret.yaml"
-        dest: "{{ k8s_remote_dir }}/secret.yaml"
+        src: "{{ k8s_dir }}/secret.yaml"
+        dest: "{{ k8s_dir }}/secret.yaml"
+        force: yes
 
     - name: Copy Service to remote
       copy:
-        src: "{{ k8s_local_dir }}/service.yaml"
-        dest: "{{ k8s_remote_dir }}/service.yaml"
+        src: "{{ k8s_dir }}/service.yaml"
+        dest: "{{ k8s_dir }}/service.yaml"
+        force: yes
 
     - name: Copy Deployment to remote
       copy:
-        src: "{{ k8s_local_dir }}/deployment.yaml"
-        dest: "{{ k8s_remote_dir }}/deployment.yaml"
+        src: "{{ k8s_dir }}/deployment.yaml"
+        dest: "{{ k8s_dir }}/deployment.yaml"
+        force: yes
 
     - name: Apply Secret
-      shell: kubectl apply -f {{ k8s_remote_dir }}/secret.yaml
+      shell: kubectl apply -f {{ k8s_dir }}/secret.yaml
 
     - name: Apply Service
-      shell: kubectl apply -f {{ k8s_remote_dir }}/service.yaml
+      shell: kubectl apply -f {{ k8s_dir }}/service.yaml
 
     - name: Apply Deployment
-      shell: kubectl apply -f {{ k8s_remote_dir }}/deployment.yaml
+      shell: kubectl apply -f {{ k8s_dir }}/deployment.yaml
 
     - name: Delete Secret from remote
       file:
-        path: "{{ k8s_remote_dir }}/secret.yaml"
+        path: "{{ k8s_dir }}/secret.yaml"
         state: absent
 
     - name: Delete Service from remote
       file:
-        path: "{{ k8s_remote_dir }}/service.yaml"
+        path: "{{ k8s_dir }}/service.yaml"
         state: absent
 
     - name: Delete Deployment from remote
       file:
-        path: "{{ k8s_remote_dir }}/deployment.yaml"
+        path: "{{ k8s_dir }}/deployment.yaml"
         state: absent
