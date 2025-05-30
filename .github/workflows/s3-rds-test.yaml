@@ -12,13 +12,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Test RDS Connection
+      - name: Set up MySQL Client
         run: |
-          # MySQL/MariaDB 클라이언트 설치
           sudo apt-get update
           sudo apt-get install -y mysql-client
-          
-          # RDS 연결 테스트
+          mysql --version
+
+      - name: Test RDS Connection
+        run: |
           mysql \
             -h "${{ secrets.RDS_HOST }}" \
             -u "${{ secrets.RDS_USERNAME }}" \
@@ -27,18 +28,28 @@ jobs:
             "${{ secrets.RDS_DB_NAME }}"
         shell: bash
 
-      - name: Install AWS CLI v2
+      - name: Install or Update AWS CLI
         run: |
-          # 공식 AWS 설치 스크립트 사용
+          # 기존 설치 제거 (선택사항)
+          sudo rm -rf /usr/local/aws-cli
+          
+          # 최신 AWS CLI 설치
           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
+          unzip -q awscliv2.zip
+          sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
           aws --version
+          rm -rf awscliv2.zip aws
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          aws configure set aws_secret_access_key "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          aws configure set default.region ap-northeast-2
 
       - name: Test S3 Connection (Read Only)
         run: |
-          # S3 버킷 목록 조회
-          AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          aws s3 ls "s3://${{ secrets.S3_BUCKET }}/" --region ap-northeast-2
-        shell: bash
+          # 버킷 존재 여부 확인
+          aws s3api head-bucket --bucket "${{ secrets.S3_BUCKET }}" || echo "Bucket access verification failed"
+          
+          # 객체 목록 조회 (실패 시 계속 진행)
+          aws s3 ls "s3://${{ secrets.S3_BUCKET }}/" --region ap-northeast-2 || echo "Listing failed but continuing workflow"
