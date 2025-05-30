@@ -14,8 +14,11 @@ jobs:
 
       - name: Test RDS Connection
         run: |
-          # MySQL/MariaDB 연결 테스트 (RDS)
+          # MySQL/MariaDB 클라이언트 설치
+          sudo apt-get update
           sudo apt-get install -y mysql-client
+          
+          # RDS 연결 테스트
           mysql \
             -h "${{ secrets.RDS_HOST }}" \
             -u "${{ secrets.RDS_USERNAME }}" \
@@ -24,14 +27,18 @@ jobs:
             "${{ secrets.RDS_DB_NAME }}"
         shell: bash
 
+      - name: Install AWS CLI v2
+        run: |
+          # 공식 AWS 설치 스크립트 사용
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+          aws --version
+
       - name: Test S3 Connection (Read Only)
         run: |
-          # AWS CLI 설치
-          sudo apt-get install -y awscli
-
-          # S3 버킷 목록 조회 (Read Only)
+          # S3 버킷 목록 조회
           AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
           AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          AWS_DEFAULT_REGION="ap-northeast-2" \
           aws s3 ls "s3://${{ secrets.S3_BUCKET }}/" --region ap-northeast-2
         shell: bash
