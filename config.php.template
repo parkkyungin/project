@@ -1,11 +1,11 @@
 <?php
-$aws_key = getenv('AWS_ACCESS_KEY_ID') ?: '';
-$aws_secret = getenv('AWS_SECRET_ACCESS_KEY') ?: '';
-$rds_dbname = getenv('RDS_DB_NAME') ?: '';
-$rds_host = getenv('RDS_HOST') ?: '';
-$rds_user = getenv('RDS_USERNAME') ?: '';
-$rds_pass = getenv('RDS_PASSWORD') ?: '';
-$s3_bucket = getenv('S3_BUCKET') ?: '';
+$aws_key = '${AWS_ACCESS_KEY_ID}';
+$aws_secret = '${AWS_SECRET_ACCESS_KEY}';
+$rds_dbname = '${RDS_DB_NAME}';
+$rds_host = '${RDS_HOST}';
+$rds_user = '${RDS_USERNAME}';
+$rds_pass = '${RDS_PASSWORD}';
+$s3_bucket = '${S3_BUCKET}';
 $CONFIG = array (
   'htaccess.RewriteBase' => '/',
   'memcache.local' => '\\OC\\Memcache\\APCu',
