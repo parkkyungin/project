@@ -1,5 +1,5 @@
 - name: Apply Kubernetes manifests
-  hosts: master
+  hosts: master11
   become: yes
 
   vars:
