@@ -16,7 +16,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
+      - name: Render config.php from template
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+          RDS_HOST: ${{ secrets.RDS_HOST }}
+          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
+          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        run: |
+          envsubst < config.php.template > config.php
+          cat config.php  # 확인용, 필요없으면 삭제하세요
+          
       - name: Build Docker image
         run: |
           docker build -t nextcloud-s3:${{ github.sha }} .
