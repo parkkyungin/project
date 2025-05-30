@@ -17,18 +17,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Render config.php from template
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          RDS_HOST: ${{ secrets.RDS_HOST }}
-          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      - name: Render config.php using sed
         run: |
-          envsubst < config.php.template > config.php
-          cat config.php  # 확인용, 필요없으면 삭제하세요
+          sed -e "s|__AWS_ACCESS_KEY_ID__|${{ secrets.AWS_ACCESS_KEY_ID }}|g" \
+              -e "s|__AWS_SECRET_ACCESS_KEY__|${{ secrets.AWS_SECRET_ACCESS_KEY }}|g" \
+              -e "s|__RDS_DB_NAME__|${{ secrets.RDS_DB_NAME }}|g" \
+              -e "s|__RDS_HOST__|${{ secrets.RDS_HOST }}|g" \
+              -e "s|__RDS_USERNAME__|${{ secrets.RDS_USERNAME }}|g" \
+              -e "s|__RDS_PASSWORD__|${{ secrets.RDS_PASSWORD }}|g" \
+              -e "s|__S3_BUCKET__|${{ secrets.S3_BUCKET }}|g" \
+              config.php.template > config.php
+        # run: |
+        #  envsubst < config.php.template > config.php
+        #  cat config.php  # 확인용, 필요없으면 삭제하세요
           
       - name: Build Docker image
         run: |
