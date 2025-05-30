@@ -38,7 +38,7 @@ $CONFIG = array (
           5 => '10.0.0.31',
           6 => '10.0.0.41',
   ), # IP
-  'datadirectory' => '',
+  'datadirectory' => '/var/www/html/data',
   'objectstore' => [
     'class' => '\\OC\\Files\\ObjectStore\\S3',
     'arguments' => [
