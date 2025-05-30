@@ -58,7 +58,7 @@ $CONFIG = array (
   'datadirectory' => '/var/www/html/data',
   'dbtype' => 'mysql',
   'version' => '31.0.5.1',
-  'overwrite.cli.url' => 'http://test.5585in.click', 
+  'overwrite.cli.url' => 'https://test.5585in.click', 
   'dbname' => '__RDS_DB_NAME__',
   'dbhost' => '__RDS_HOST__',
   'dbport' => '3306',
@@ -67,7 +67,7 @@ $CONFIG = array (
   'dbuser' => '__RDS_USERNAME__',
   'dbpassword' => '__RDS_PASSWORD__',
   'installed' => true,
-  'overwriteprotocol' => 'http',
+  'overwriteprotocol' => 'https',
   'overwritehost' => 'test.5585in.click',
   'auth.bruteforce.protection.enabled' => false,
 );
