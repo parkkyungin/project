@@ -50,9 +50,3 @@ spec:
                 secretKeyRef:
                   name: rds-credentials
                   key: db_password
-          volumeMounts:
-            - name: nextcloud-data
-              mountPath: /var/www/html/data
-      volumes:
-        - name: nextcloud-data
-          emptyDir: {}  # or use PVC if you prefer
