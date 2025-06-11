@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  photoprism:
+    image: photoprism/photoprism:latest
+    container_name: photoprism
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "2342:2342"  # 웹 UI 접속 포트
+    environment:
+      PHOTOPRISM_ADMIN_PASSWORD: "test1234" # 관리자 비밀번호
+      PHOTOPRISM_DEFAULT_LOCALE: "ko"
+      PHOTOPRISM_UPLOAD_NSFW: "true"            # 성인 사진 허용 여부
+      PHOTOPRISM_DEBUG: "false"                 # 디버그 로그
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000          # 원본사진 최대 수
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"       # 압축 사용
+      PHOTOPRISM_LOG_LEVEL: "info"              # 로그 레벨
+      PHOTOPRISM_DETECT_NSFW: "true"
+      PHOTOPRISM_EXPERIMENTAL: "true"
+    volumes:
+      - ~/photoprism/storage:/photoprism/storage         # 내부 데이터
+      - ~/Pictures:/photoprism/originals                 # 원본 사진 경로
+
+  mariadb:
+    image: mariadb:10.6
+    restart: unless-stopped
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: photoprism
+      MYSQL_DATABASE: photoprism
+      MYSQL_USER: photoprism
+      MYSQL_PASSWORD: photoprism
+    volumes:
+      - ~/photoprism/database:/var/lib/mysql
+
