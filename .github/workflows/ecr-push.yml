@@ -24,11 +24,47 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push Docker image to ECR
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          # RDS 관련 Secrets
+          DB_SERVER: ${{ secrets.PHOTOPRISM_DATABASE_SERVER }}
+          DB_NAME: ${{ secrets.PHOTOPRISM_DATABASE_NAME }}
+          DB_USER: ${{ secrets.PHOTOPRISM_DATABASE_USER }}
+          DB_PASSWORD: ${{ secrets.PHOTOPRISM_DATABASE_PASSWORD }}
+          # S3 관련 Secrets
+          S3_BUCKET: ${{ secrets.PHOTOPRISM_S3_BUCKET }}
+          ADMIN_PASSWORD: ${{ secrets.PHOTOPRISM_ADMIN_PASSWORD }}
+          # AWS Credentials
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          IMAGE_TAG=${{ github.event.inputs.tag }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --build-arg PHOTOPRISM_DATABASE_SERVER=$DB_SERVER \
+            --build-arg PHOTOPRISM_DATABASE_NAME=$DB_NAME \
+            --build-arg PHOTOPRISM_DATABASE_USER=$DB_USER \
+            --build-arg PHOTOPRISM_DATABASE_PASSWORD=$DB_PASSWORD \
+            --build-arg PHOTOPRISM_ADMIN_PASSWORD=$ADMIN_PASSWORD \
+            --build-arg PHOTOPRISM_S3_BUCKET=$S3_BUCKET \
+            --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY \
+            --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY \
+            --build-arg AWS_REGION=$AWS_REGION \
+            .
+
+      - name: Push Docker image
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          IMAGE_TAG=latest
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./docker
+          IMAGE_TAG=${{ github.event.inputs.tag }}
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Verify image metadata
+        run: |
+          IMAGE_TAG=${{ github.event.inputs.tag }}
+          docker inspect $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --format='{{range .Config.Env}}{{println .}}{{end}}' \
+            | grep -E 'PHOTOPRISM|AWS_'
