@@ -22,7 +22,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build and Push Docker image
         env:
           DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
           # RDS 관련 Secrets
@@ -39,7 +39,9 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           IMAGE_TAG=${{ github.event.inputs.tag || 'latest' }}
-          docker build -f Dockerfile -t $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
+          
+          echo "🚧 Building Docker image: $DOCKER_HUB_REPOSITORY:$IMAGE_TAG"
+          docker build -t $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
             --build-arg PHOTOPRISM_DATABASE_SERVER=$DB_SERVER \
             --build-arg PHOTOPRISM_DATABASE_NAME=$DB_NAME \
             --build-arg PHOTOPRISM_DATABASE_USER=$DB_USER \
@@ -49,20 +51,7 @@ jobs:
             --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY \
             --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY \
             --build-arg AWS_REGION=$AWS_REGION \
-            ${{ github.workspace }}
+            .
 
-      - name: Push Docker image
-        env:
-          DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
-        run: |
-          IMAGE_TAG=${{ github.event.inputs.tag }}
+          echo "📦 Pushing Docker image..."
           docker push $DOCKER_HUB_REPOSITORY:$IMAGE_TAG
-
-      - name: Verify image metadata
-        env:
-          DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
-        run: |
-          IMAGE_TAG=${{ github.event.inputs.tag }}
-          docker inspect $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
-            --format='{{range .Config.Env}}{{println .}}{{end}}' \
-            | grep -E 'PHOTOPRISM|AWS_'
