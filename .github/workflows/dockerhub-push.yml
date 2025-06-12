@@ -1,0 +1,63 @@
+name: Build and Push to Docker Hub
+
+on:
+  #push:
+  #  branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build Docker image
+        env:
+          DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
+          # RDS 관련 Secrets
+          DB_SERVER: ${{ secrets.PHOTOPRISM_DATABASE_SERVER }}
+          DB_NAME: ${{ secrets.PHOTOPRISM_DATABASE_NAME }}
+          DB_USER: ${{ secrets.PHOTOPRISM_DATABASE_USER }}
+          DB_PASSWORD: ${{ secrets.PHOTOPRISM_DATABASE_PASSWORD }}
+          # S3 관련 Secrets
+          S3_BUCKET: ${{ secrets.PHOTOPRISM_S3_BUCKET }}
+          ADMIN_PASSWORD: ${{ secrets.PHOTOPRISM_ADMIN_PASSWORD }}
+          # AWS Credentials
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          IMAGE_TAG=${{ github.event.inputs.tag }}
+          docker build -t $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
+            --build-arg PHOTOPRISM_DATABASE_SERVER=$DB_SERVER \
+            --build-arg PHOTOPRISM_DATABASE_NAME=$DB_NAME \
+            --build-arg PHOTOPRISM_DATABASE_USER=$DB_USER \
+            --build-arg PHOTOPRISM_DATABASE_PASSWORD=$DB_PASSWORD \
+            --build-arg PHOTOPRISM_ADMIN_PASSWORD=$ADMIN_PASSWORD \
+            --build-arg PHOTOPRISM_S3_BUCKET=$S3_BUCKET \
+            --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY \
+            --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY \
+            --build-arg AWS_REGION=$AWS_REGION \
+            .
+
+      - name: Push Docker image
+        env:
+          DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
+        run: |
+          IMAGE_TAG=${{ github.event.inputs.tag }}
+          docker push $DOCKER_HUB_REPOSITORY:$IMAGE_TAG
+
+      - name: Verify image metadata
+        run: |
+          IMAGE_TAG=${{ github.event.inputs.tag }}
+          docker inspect $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
+            --format='{{range .Config.Env}}{{println .}}{{end}}' \
+            | grep -E 'PHOTOPRISM|AWS_'
