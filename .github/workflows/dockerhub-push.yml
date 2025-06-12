@@ -59,6 +59,8 @@ jobs:
           docker push $DOCKER_HUB_REPOSITORY:$IMAGE_TAG
 
       - name: Verify image metadata
+        env:
+          DOCKER_HUB_REPOSITORY: ${{ secrets.DOCKER_HUB_REPOSITORY }}
         run: |
           IMAGE_TAG=${{ github.event.inputs.tag }}
           docker inspect $DOCKER_HUB_REPOSITORY:$IMAGE_TAG \
